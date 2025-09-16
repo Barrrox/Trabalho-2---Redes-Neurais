@@ -1,3 +1,4 @@
+from cv2 import imread
 from random import random
 import numpy as np
 from pathlib import Path
@@ -16,14 +17,14 @@ def formatImage(imagemDesf):
 		outScale = width
 		startX = 0
 
-		cropOffset = int((height - width) * random.random())
+		cropOffset = int((height - width) * random())
 		startY = cropOffset
 
 	if width > height:
 		outScale = height
 		startY = 0
 
-		cropOffset = int((width - height) * random.random())
+		cropOffset = int((width - height) * random())
 		startX = cropOffset
 
 
@@ -41,8 +42,7 @@ def formatImage(imagemDesf):
 
 
 def getFolder(path: str) -> str:
-    parts = path.split('\\', 2)
-    return parts[0]
+    return Path(path).parent.name
 
 #
 def formatDataSet(caminhoParaODataSet):
@@ -79,19 +79,19 @@ def formatDataSet(caminhoParaODataSet):
 		try:
 			print(f"Processando imagem: {caminho_imagem}")
 
-			# # Abre a imagem usando o objeto Path diretamente
-			# imagem = cv2.imread(caminho_imagem)
+			# Abre a imagem usando o objeto Path diretamente
+			imagem = imread(caminho_imagem)
 
-			# imagemFormatada = formatImage(imagem)
+			imagemFormatada = formatImage(imagem)
 
-			# # Converte para matriz NumPy e adiciona à lista
-			# imagemFormatada = np.array(imagemFormatada)
+			# Converte para matriz NumPy e adiciona à lista
+			imagemFormatada = np.array(imagemFormatada)
 
-			# lista_de_matrizes.append(imagemFormatada)
+			lista_de_matrizes.append(imagemFormatada)
 			
-			# classe = getFolder(str(caminho_imagem))
+			classe = getFolder(str(caminho_imagem))
 
-			# lista_de_classes.append(classe_para_label[classe])
+			lista_de_classes.append(classe_para_label[classe])
 
 		except Exception as e:
 			print(f"Erro ao processar o arquivo {caminho_imagem}: {e}")
@@ -101,9 +101,9 @@ def formatDataSet(caminhoParaODataSet):
 
 	return lista_de_matrizes, lista_de_classes
 
-inicio = time.time()
+inicio = time()
 formatDataSet("./BaseDeDados")
-print(f"Tempo : {time.time() - inicio}s")
+print(f"Tempo : {time() - inicio}s")
 # # abrir arquivo da imagem
 # image = cv2.imread("exp.jpg")
 
