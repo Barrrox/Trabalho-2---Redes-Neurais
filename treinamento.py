@@ -71,21 +71,6 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
 
   #2. Definindo o Modelo e Treinando
 
-  # # Cria o modelo
-  # model = Sequential([
-  #     Flatten(input_shape=(255, 255)),
-  #     Dense(128, activation='relu'),
-  #     Dense(64, activation='relu'),
-  #     Dense(9, activation='softmax')
-  # ])
-
-
-  ###################### SOLUÇÃO GPT ######################
-  ###################### SOLUÇÃO GPT ######################
-  ###################### SOLUÇÃO GPT ######################
-  ###################### SOLUÇÃO GPT ######################
-  ###################### SOLUÇÃO GPT ######################
-
   model = Sequential([
     Input(shape=(255, 255, 3)), # Define o formato da entrada
     Conv2D(32, (3,3), activation='relu'),
