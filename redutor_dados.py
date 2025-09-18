@@ -34,7 +34,6 @@ def redutor_dados(NUM_AMOSTRAS):
 
     for i in range(9): # faz para as 9 categorias
         offset = categorias_indice[i]
-        print(i)
         for j in range(NUM_AMOSTRAS):
             x_train_reduzido.append(x_train[j + offset])
             y_train_reduzido.append(y_train[j + offset])
@@ -52,7 +51,7 @@ def redutor_dados(NUM_AMOSTRAS):
 def main():
   
     # Numero de amostras de cada movimento artístico
-    NUM_AMOSTRAS = 50
+    NUM_AMOSTRAS = 500
 
     redutor_dados(NUM_AMOSTRAS)
 

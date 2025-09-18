@@ -82,7 +82,7 @@ def otimizar_parametros():
     'model__conv2_filters': [32, 64, 128],
     'model__dense_units': [64, 128, 256],
     'batch_size': [16, 32],
-    'epochs': [5, 10]
+    'epochs': [5]
   }
 
 
@@ -91,7 +91,7 @@ def otimizar_parametros():
                                     n_iter=10, cv=3, verbose=2)
   
 
-  print(f"Tempo = {time() - inicio:2f}s : RandomizedSearch finalizado")
+  print(f"Tempo = {time() - inicio:2f}s : Instancia do RandomizedSearch criada")
 
   # Executar o ajuste
   modelo_convergido = random_search.fit(x_train, y_train)
