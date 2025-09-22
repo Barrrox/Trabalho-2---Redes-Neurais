@@ -4,7 +4,7 @@
 Autores: Ellen Brzozoski, João Silva, Lóra, Matheus Barros
 """
 
-import numpy as np
+from numpy import load, array 
 from tensorflow.keras.models import Model # type: ignore
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Input, Concatenate, Dropout # type: ignore
 from tensorflow.keras.utils import to_categorical # type: ignore
@@ -35,8 +35,8 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
   print(f"Tempo = {time() - inicio:2f}s : Dados de treino e teste separados corretamente")
 
   # Converte as listas de imagens e rótulos para arrays NumPy
-  x_test = np.array(x_test)
-  y_test = np.array(y_test)
+  x_test = array(x_test)
+  y_test = array(y_test)
 
   print(f"Tempo = {time() - inicio:2f}s : Conversão concluida")
 
