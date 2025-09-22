@@ -14,11 +14,9 @@ Autores: Ellen Brzozoski, João Silva, Lóra, Matheus Barros
 """
 
 import numpy as np
-from random import randint
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Input
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.optimizers import Adam, RMSprop, SGD
+from tensorflow.keras.models import Sequential # type: ignore
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Input # type: ignore
+from tensorflow.keras.utils import to_categorical # type: ignore
 from scikeras.wrappers import KerasClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from time import time
