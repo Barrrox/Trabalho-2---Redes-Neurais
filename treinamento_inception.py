@@ -6,14 +6,14 @@ Autores: Ellen Brzozoski, João Silva, Lóra, Matheus Barros
 
 import numpy as np
 from tensorflow.keras.models import Model # type: ignore
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Input, Concatenate # type: ignore
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Input, Concatenate, Dropout # type: ignore
 from tensorflow.keras.utils import to_categorical # type: ignore
 from sklearn.model_selection import train_test_split
 from time import time
 
 
 def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
-  
+ 
   inicio = time()
 
   # Carrega o conjunto de dados completo a partir dos arquivos .npy
@@ -113,6 +113,11 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
   # Prepara o tensor para a classificação e define as camadas densas (fully-connected)
   x = Flatten()(x)
   x = Dense(128, activation='relu')(x)
+  
+  # A taxa de 0.5 significa que 50% dos neurônios da camada anterior serão "desligados"
+  # aleatoriamente em cada passo do treinamento.
+  x = Dropout(0.5)(x)
+  
   output_layer = Dense(9, activation='softmax')(x)
 
   # Cria o modelo final conectando a camada de entrada com a de saída
@@ -139,7 +144,7 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
 
 
 def main():
-  
+ 
   # Define a proporção do dataset a ser usada como conjunto de teste (ex: 0.1 para 10%)
   TAM_TESTES = 1/10
 
