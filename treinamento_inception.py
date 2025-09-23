@@ -17,8 +17,8 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
   inicio = time()
 
   # Carrega o conjunto de dados completo a partir dos arquivos .npy
-  imagens = np.load("imagens_treino.npy")
-  labels = np.load("labels_treino.npy")
+  imagens = load("imagens_treino.npy")
+  labels = load("labels_treino.npy")
 
   print(f"Tempo = {time() - inicio:2f}s : Dados carregados")
 
