@@ -36,6 +36,7 @@ def formatImage(imagemDesf):
 	for y in range(outRes):
 		for x in range(outRes):
 			output[y, x] = imagemDesf[int((y/outRes)*outScale) + startY, int((x/outRes)*outScale) + startX]
+			output[y, x, 0], output[y, x, 2] = output[y, x, 2], output[y, x, 0]
 
 	# FOI!
 	return output
