@@ -51,7 +51,8 @@ def carregar_modelo(QNT_TESTES):
     fig, (ax_img, ax_bar) = plt.subplots(1, 2, figsize=(8, 4))
     
     # Função que será chamada pelo botão
-    def mostrar_proxima_imagem():
+    # NÃO RETIRE O PARAMETRO INUTIL DO LUGAR
+    def mostrar_proxima_imagem(event):
         # Limpa os eixos antes de desenhar a nova imagem/gráfico
         ax_img.clear()
         ax_bar.clear()
@@ -96,12 +97,10 @@ def carregar_modelo(QNT_TESTES):
     botao_proxima.on_clicked(mostrar_proxima_imagem)
     
     # Chama a função uma vez manualmente para exibir a primeira imagem
-    mostrar_proxima_imagem()
+    mostrar_proxima_imagem(None)
     
     # Exibe todas as figuras (Matriz de Confusão e a interface interativa)
     plt.show()
-
-    # --- FIM DAS ALTERAÇÕES ---
 
 def main():
 
