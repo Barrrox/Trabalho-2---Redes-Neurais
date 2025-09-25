@@ -117,7 +117,7 @@ def otimizar_parametros(TAM_TESTES):
   parametros = {
     # Parâmetros que vão para o .fit() do KerasClassifier
     'batch_size': [16, 32],
-    'epochs': [10], # Aumente as épocas para dar tempo ao modelo de aprender
+    'epochs': [20], # Aumente as épocas para dar tempo ao modelo de aprender
 
     # Parâmetros que vão para a função construir_modelo_inception (prefixo 'model__')
     'model__optimizer': ['adam', 'rmsprop'],
@@ -127,7 +127,7 @@ def otimizar_parametros(TAM_TESTES):
 
   # Randomized Search
   random_search = RandomizedSearchCV(estimator=model, param_distributions=parametros,
-                                    n_iter=10, cv=3, verbose=2)
+                                    n_iter=8, cv=2, verbose=2)
   
 
   print(f"Tempo = {time() - inicio:2f}s : Instancia do RandomizedSearch criada")
@@ -149,8 +149,7 @@ def main():
   # Tamanho do conjunto de dados de testes em relação ao de treino
   # Ex: se TAM_TESTES = 0.16 então o conjunto de testes terá 16% do tamanho
   # do conjunto de treino
-  TAM_TESTES = 0.2
-
+  TAM_TESTES = 0.15
   otimizar_parametros(TAM_TESTES)
 
 

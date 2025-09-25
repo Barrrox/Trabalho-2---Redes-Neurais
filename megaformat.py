@@ -17,14 +17,14 @@ def formatImage(imagemDesf):
 		outScale = width
 		startX = 0
 
-		cropOffset = int((height - width) * random())
+		cropOffset = int((height - width) * 0.5)
 		startY = cropOffset
 
 	if width > height:
 		outScale = height
 		startY = 0
 
-		cropOffset = int((width - height) * random())
+		cropOffset = int((width - height) * 0.5)
 		startX = cropOffset
 
 

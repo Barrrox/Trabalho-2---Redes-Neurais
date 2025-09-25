@@ -146,10 +146,10 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
 def main():
  
   # Define a proporção do dataset a ser usada como conjunto de teste (ex: 0.1 para 10%)
-  TAM_TESTES = 1/10
+  TAM_TESTES = 15/100
 
   # Define o número de épocas (ciclos completos de treinamento sobre o dataset)
-  QNT_EPOCAS = 30
+  QNT_EPOCAS = 40
 
   treinar_modelo(TAM_TESTES, QNT_EPOCAS)
 
