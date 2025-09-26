@@ -51,10 +51,28 @@ def carregar_modelo(QNT_TESTES):
 
     # Gera a matriz de confusão.
     conf_matrix = confusion_matrix(y_test, y_pred)
+    
+    # Pega os nomes das classes do dicionário para usar como rótulos.
+    nomes_das_classes = list(label_para_classe.values())
 
-    # Plota a matriz de confusão.
-    ConfusionMatrixDisplay(conf_matrix).plot(cmap='Blues')
-    plt.title("Matriz de Confusão")
+    # 1. Cria uma figura e eixos com tamanho customizado para a matriz de confusão.
+    fig_cm, ax_cm = plt.subplots(figsize=(8, 6))
+
+    # 2. Cria o objeto de exibição da matriz com os nomes das classes.
+    disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=nomes_das_classes)
+
+    # 3. Plota a matriz nos eixos que criamos (ax=ax_cm).
+    disp.plot(cmap='Blues', xticks_rotation=40, ax=ax_cm)
+
+    # 3.1 
+    plt.setp(ax_cm.get_xticklabels(), ha="right", rotation_mode="anchor")
+
+    # 4. Define o título nos eixos específicos da matriz
+    ax_cm.set_title("Matriz de Confusão")
+
+    # 5. Ajusta o layout para garantir que tudo (incluindo os rótulos) caiba na figura
+    fig_cm.tight_layout()
+
     print("Matriz de confusão exibida com sucesso.")
 
     # --- Etapa 2: Janela de Predição Interativa com 9 Imagens ---
@@ -102,8 +120,8 @@ def carregar_modelo(QNT_TESTES):
         # Redesenha a figura para que as alterações apareçam.
         fig.canvas.draw_idle()
 
-    # Ajusta o layout para criar espaço para o botão na parte inferior.
-    fig.subplots_adjust(bottom=0.2, hspace=0.5)
+    # Ajusta o layout para criar espaço para o botão e entre as imagens.
+    fig.subplots_adjust(bottom=0.2, hspace=0.4)
 
     # Define a área onde o botão será criado. Formato: [esquerda, baixo, largura, altura].
     ax_botao = fig.add_axes([0.4, 0.05, 0.2, 0.075])
