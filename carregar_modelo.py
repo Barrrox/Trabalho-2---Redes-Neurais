@@ -1,3 +1,11 @@
+"""
+Esse código carrega o modelo e o conjunto de treino para gerar uma
+matriz de confusão e fazer a previsão de 9 imagens, uma de cada
+movimento artístico
+
+Autores: Ellen Brzozoski, João Silva, Lóra, Matheus Barros
+"""
+
 from tensorflow.keras.models import load_model # type: ignore
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt

@@ -38,7 +38,7 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
     # --- 1. Carregamento e Preparação dos Dados ---
 
     # Carrega os datasets pré-processados do disco.
-    # Espera-se que 'imagens_treino.npy' contenha todas as imagens como arrays (255, 255, 3)
+    # Espera-se que 'imagens_treino.npy' contenha todas as imagens como arrays (128, 128, 3)
     # e 'labels_treino.npy' contenha os rótulos numéricos correspondentes.
     imagens = load("imagens_treino.npy")
     labels = load("labels_treino.npy")
@@ -115,7 +115,7 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
     # -- Construção do Modelo --
     
     # Camada de entrada: define o formato que a rede espera receber.
-    # No nosso caso, imagens de 255x255 pixels com 3 canais de cor (RGB).
+    # No nosso caso, imagens de 128x128 pixels com 3 canais de cor (RGB).
     input_layer = Input(shape=(128, 128, 3))
 
     # Bloco convolucional inicial pra uma primeira extração de features

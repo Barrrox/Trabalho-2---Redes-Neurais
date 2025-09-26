@@ -1,3 +1,11 @@
+"""
+Esse código varre o banco de dados inteiro, executa uma operação de crop central e
+redimensiona a imagem para 128x128. No fim, ele agrupa todas as imagens em
+um único arquivo do numpy (.npy).
+
+Autores: Ellen Brzozoski, João Silva, Lóra, Matheus Barros
+"""
+
 from cv2 import imread
 from random import random
 import numpy as np

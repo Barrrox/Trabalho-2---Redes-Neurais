@@ -90,7 +90,7 @@ def otimizar_parametros(TAM_TESTES):
       output = Concatenate(axis=-1)([conv1, conv3, conv5, pool_proj])
       return output
 
-    input_layer = Input(shape=(255, 255, 3))
+    input_layer = Input(shape=(128, 128, 3))
     x = Conv2D(32, (3, 3), activation='relu', strides=(2, 2), padding='same')(input_layer)
     x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
     
