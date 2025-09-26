@@ -6,30 +6,9 @@ Este repositório contém o código para uma rede neural convolucional (CNN) pro
 
 Antes de iniciar o treinamento, certifique-se de que você tenha todas as bibliotecas necessárias instaladas. Você pode instalá-las usando o `pip`.
 
-* **TensorFlow:** A principal biblioteca para a construção e treinamento da rede neural.
-    ```bash
-    pip install tensorflow
-    ```
-
-* **NumPy:** Essencial para manipulação de arrays e operações matemáticas.
-    ```bash
-    pip install numpy
-    ```
-
-* **OpenCV (cv2):** Utilizada para o processamento e leitura das imagens.
-    ```bash
-    pip install opencv-python
-    ```
-
-* **Scikit-learn:** Usada para gerar a matriz de confusão e avaliar a performance do modelo.
-    ```bash
-    pip install scikit-learn
-    ```
-
-* **Matplotlib:** Necessária para a visualização da matriz de confusão e outros gráficos.
-    ```bash
-    pip install matplotlib
-    ```
+```bash
+pip install tensorflow numpy opencv-python scikit-learn matplotlib
+```
 
 ## Passo a Passo para Treinar o Modelo
 
@@ -40,13 +19,15 @@ A base de dados com as imagens das pinturas está no Google Drive. Faça o downl
 ### 2. Pré-processar as Imagens
 Execute o script `megaformat.py` para formatar e preparar as imagens para o treinamento. Este script irá redimensionar, normalizar e organizar os dados em um formato que a rede possa consumir.
 
-* **Aviso:** Este processo demorou cerca de 8 minutos no meu computador. Deve ser mais rápido no seu.
+* **Aviso:** Este processo demorou cerca de 8 minutos no meu computador (Processador, 12th Gen Intel(R) Core(TM) i5-1235U, 1300 Mhz, 10 Núcleo(s), 12 Processador(es) Lógico(s)). Deve ser mais rápido no seu. 
 
 ```bash
 python megaformat.py
 ```
 
 ### 3. Executar o Treinamento
+
+* **Aviso:** Demora um pouco... Na verdade esse processo nem rodou no meu computador com as 9k imagens por falta de memória RAM (tinha 8GB no total usando windowns).
 
 ```bash
 python treinamento.py

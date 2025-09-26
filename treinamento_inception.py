@@ -1,158 +1,203 @@
+# -*- coding-utf-8 -*-
+
 """
-# Classificação de obras de arte por movimento artístico
+Classificação de Obras de Arte por Movimento Artístico
+
+Script para treinar uma rede neural convolucional (baseada na arquitetura Inception)
+para classificar imagens de obras de arte em 9 movimentos artísticos distintos.
 
 Autores: Ellen Brzozoski, João Silva, Lóra, Matheus Barros
 """
 
+# --- Importação das Bibliotecas ---
+
 from numpy import load, array 
-from tensorflow.keras.models import Model # type: ignore
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Input, Concatenate, Dropout # type: ignore
-from tensorflow.keras.utils import to_categorical # type: ignore
+# Ferramentas do TensorFlow/Keras pra construir e treinar a rede neural.
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Input, Concatenate, Dropout
+from tensorflow.keras.utils import to_categorical
+# Sklearn ajuda a dividir os dados de forma organizada.
 from sklearn.model_selection import train_test_split
+# Módulo pra medir o tempo de execução de cada etapa.
 from time import time
 
 
 def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
- 
-  inicio = time()
-
-  # Carrega o conjunto de dados completo a partir dos arquivos .npy
-  imagens = load("imagens_treino.npy")
-  labels = load("labels_treino.npy")
-
-  print(f"Tempo = {time() - inicio:2f}s : Dados carregados")
-
-  # Divide os dados em conjuntos de treino e teste de forma que
-  # um não tenha imagens do outro
-  x_train, x_test, y_train, y_test = train_test_split(
-      imagens, 
-      labels, 
-      test_size=TAM_TESTES, 
-      # Garante que a divisão seja sempre a mesma 
-      random_state=42 
-  )
-  
-  print(f"Tempo = {time() - inicio:2f}s : Dados de treino e teste separados corretamente")
-
-  # Converte as listas de imagens e rótulos para arrays NumPy
-  x_test = array(x_test)
-  y_test = array(y_test)
-
-  print(f"Tempo = {time() - inicio:2f}s : Conversão concluida")
-
-  # Normaliza os valores dos pixels para o intervalo [0, 1]
-  # serve para otimizar o treino
-  x_train = x_train / 255.0
-  x_test = x_test / 255.0
-
-  print(f"Tempo = {time() - inicio:2f}s : Pixels normalizados entre 0 e 1")
-
-  # Converte os rótulos numéricos (labels) para o formato one-hot encoding
-  y_train = to_categorical(y_train, 9)
-  y_test = to_categorical(y_test, 9)
-
-  print(f"Tempo = {time() - inicio:2f}s : Rótulos covertidos para categorias")
-
-  def inception_module(x, filters_1x1, filters_3x3_reduce, filters_3x3, filters_5x5_reduce, filters_5x5, filters_pool_proj):
     """
-    Define um bloco de construção "Inception", que aplica filtros de diferentes 
-    tamanhos em paralelo e concatena os resultados.
+    Orquestra todo o processo de treinamento da rede neural: carrega os dados,
+    pré-processa as imagens, define a arquitetura do modelo, compila, treina
+    e salva o resultado final.
 
-    Argumentos:
-      x: Tensor de entrada.
-      filters_...: Número de filtros para cada camada convolucional dentro do módulo.
+    Args:
+        TAM_TESTES (float): Proporção do dataset a ser usada para teste (ex: 0.15 para 15%).
+        QNT_EPOCAS (int): Número de vezes que o modelo verá o dataset de treino completo.
     """
-    # Ramo 1: Convolução simples com filtro 1x1
-    conv_1x1 = Conv2D(filters_1x1, (1, 1), padding='same', activation='relu')(x)
+    
+    inicio = time()
 
-    # Ramo 2: filtro 1x1 -> convolução 3x3
-    # Isso reduz a profundidade do tensor, o que melhora a eficiência pois reduz o número de operações 
-    conv_3x3_reduce = Conv2D(filters_3x3_reduce, (1, 1), padding='same', activation='relu')(x)
-    conv_3x3 = Conv2D(filters_3x3, (3, 3), padding='same', activation='relu')(conv_3x3_reduce)
+    # --- 1. Carregamento e Preparação dos Dados ---
 
-    # Ramo 3: filtro 1x1 -> convolução 5x5
-    conv_5x5_reduce = Conv2D(filters_5x5_reduce, (1, 1), padding='same', activation='relu')(x)
-    conv_5x5 = Conv2D(filters_5x5, (5, 5), padding='same', activation='relu')(conv_5x5_reduce)
+    # Carrega os datasets pré-processados do disco.
+    # Espera-se que 'imagens_treino.npy' contenha todas as imagens como arrays (255, 255, 3)
+    # e 'labels_treino.npy' contenha os rótulos numéricos correspondentes.
+    imagens = load("imagens_treino.npy")
+    labels = load("labels_treino.npy")
 
-    # Ramo 4: MaxPooling -> convolução 1x1
-    pool_proj = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(x)
-    pool_proj_conv = Conv2D(filters_pool_proj, (1, 1), padding='same', activation='relu')(pool_proj)
+    print(f"Tempo = {time() - inicio:.2f}s : Datasets carregados da memória.")
 
-    # Concatena os mapas de características de todos os ramos
-    output = Concatenate(axis=-1)([conv_1x1, conv_3x3, conv_5x5, pool_proj_conv])
+    # Divide o conjunto de dados em treino e teste.
+    x_train, x_test, y_train, y_test = train_test_split(
+        imagens, 
+        labels, 
+        test_size=TAM_TESTES, 
+        # random_state=42 garante que a divisão seja sempre a mesma.
+        random_state=42 
+    )
+    
+    print(f"Tempo = {time() - inicio:.2f}s : Dados de treino e teste separados.")
 
-    return output
+    # Normaliza os valores dos pixels das imagens.
+    # As imagens vêm com pixels de 0 a 255. Dividir por 255.0 coloca tudo
+    # no intervalo [0, 1]. Isso ajuda o algoritmo de otimização (Adam)
+    # a convergir mais rápido e de forma mais estável.
+    x_train = x_train / 255.0
+    x_test = x_test / 255.0
 
-  # Define a camada de entrada com o formato das imagens (255x255 pixels, 3 canais de cor)
-  input_layer = Input(shape=(255, 255, 3))
+    print(f"Tempo = {time() - inicio:.2f}s : Pixels normalizados entre 0 e 1.")
 
-  # Bloco convolucional inicial para extração de características e redução da dimensionalidade
-  x = Conv2D(32, (3, 3), activation='relu', strides=(2, 2), padding='same')(input_layer)
-  x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
+    # Converte os rótulos (labels) para o formato "one-hot encoding".
+    # Ex: a label '3' vira um vetor [0, 0, 0, 1, 0, 0, 0, 0, 0].
+    # A rede neural usa esse formato na camada de saída com ativação softmax.
+    # O número 9 representa a quantidade de classes (movimentos artísticos) do nosso problema.
+    y_train = to_categorical(y_train, 9)
+    y_test = to_categorical(y_test, 9)
 
-  # Adiciona o primeiro módulo Inception com seus respectivos números de filtro
-  x = inception_module(x,
-                       filters_1x1=64,
-                       filters_3x3_reduce=96,
-                       filters_3x3=128,
-                       filters_5x5_reduce=16,
-                       filters_5x5=32,
-                       filters_pool_proj=32)
+    print(f"Tempo = {time() - inicio:.2f}s : Rótulos convertidos para o formato one-hot.")
 
-  # Adiciona um segundo módulo Inception para aumentar a profundidade e a capacidade do modelo
-  x = inception_module(x,
-                       filters_1x1=128,
-                       filters_3x3_reduce=128,
-                       filters_3x3=192,
-                       filters_5x5_reduce=32,
-                       filters_5x5=96,
-                       filters_pool_proj=64)
+    # --- 2. Definição da Arquitetura do Modelo (GoogLeNet/Inception modificado) ---
 
-  x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
+    def inception_module(x, filters_1x1, filters_3x3_reduce, filters_3x3, filters_5x5_reduce, filters_5x5, filters_pool_proj):
+        """
+        Define um bloco de construção "Inception", que aplica filtros de diferentes 
+        tamanhos na mesma entrada e depois concatena tudo. A ideia é capturar padrões
+        em diferentes escalas (detalhes pequenos com 1x1, maiores com 3x3 e 5x5). 
 
-  # Prepara o tensor para a classificação e define as camadas densas (fully-connected)
-  x = Flatten()(x)
-  x = Dense(128, activation='relu')(x)
-  
-  # A taxa de 0.5 significa que 50% dos neurônios da camada anterior serão "desligados"
-  # aleatoriamente em cada passo do treinamento.
-  x = Dropout(0.5)(x)
-  
-  output_layer = Dense(9, activation='softmax')(x)
+        Args:
+            x (Tensor): Tensor de entrada para o módulo.
+            filters_... (int): Número de filtros para cada caminho convolucional.
+        
+        Returns:
+            Tensor: Tensor de saída com as features concatenadas.
+        """
+        # Ramo 1: Convolução 1x1. Captura padrões bem localizados.
+        conv_1x1 = Conv2D(filters_1x1, (1, 1), padding='same', activation='relu')(x)
 
-  # Cria o modelo final conectando a camada de entrada com a de saída
-  model = Model(inputs=input_layer, outputs=output_layer, name='inception_style_model')
+        # Ramo 2: Convolução 3x3.
+        # A conv 1x1 anterior reduz a profundidade do tensor (dimensão dos filtros),
+        # o que diminui drasticamente o custo computacional da conv 3x3 seguinte.
+        conv_3x3_reduce = Conv2D(filters_3x3_reduce, (1, 1), padding='same', activation='relu')(x)
+        conv_3x3 = Conv2D(filters_3x3, (3, 3), padding='same', activation='relu')(conv_3x3_reduce)
 
-  # Imprime um resumo da arquitetura do modelo no console
-  model.summary()
+        # Ramo 3: Convolução 5x5. Mesma lógica do ramo 2.
+        conv_5x5_reduce = Conv2D(filters_5x5_reduce, (1, 1), padding='same', activation='relu')(x)
+        conv_5x5 = Conv2D(filters_5x5, (5, 5), padding='same', activation='relu')(conv_5x5_reduce)
 
-  # Configura o otimizador, a função de perda e as métricas para o treinamento
-  model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        # Ramo 4: Max Pooling seguido de uma convolução 1x1.
+        pool_proj = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(x)
+        pool_proj_conv = Conv2D(filters_pool_proj, (1, 1), padding='same', activation='relu')(pool_proj)
 
-  print(f"Tempo = {time() - inicio:2f}s : Modelo compilado")
+        # Junta os resultados de todos os ramos em um único tensor.
+        # O 'axis=-1' significa que estamos empilhando na dimensão dos filtros.
+        output = Concatenate(axis=-1)([conv_1x1, conv_3x3, conv_5x5, pool_proj_conv])
 
-  # Treina o modelo
-  model.fit(x_train, y_train, epochs=QNT_EPOCAS, validation_data=(x_test, y_test))
-  # O 'validation_data' é usado ao final de cada época para avaliar o desempenho
-  # do modelo em dados não vistos, ajudando a monitorar o overfitting.
+        return output
 
-  print(f"Tempo = {time() - inicio:2f}s : Modelo treinado")
+    # -- Construção do Modelo --
+    
+    # Camada de entrada: define o formato que a rede espera receber.
+    # No nosso caso, imagens de 255x255 pixels com 3 canais de cor (RGB).
+    input_layer = Input(shape=(255, 255, 3))
 
-  model.save('model.keras')
+    # Bloco convolucional inicial pra uma primeira extração de features
+    # e redução da dimensionalidade da imagem.
+    x = Conv2D(32, (3, 3), activation='relu', strides=(2, 2), padding='same')(input_layer)
+    x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
 
-  print(f"Tempo = {time() - inicio:2f}s : Modelo salvo")
+    # Primeiro módulo Inception.
+    x = inception_module(x,
+                         filters_1x1=64,
+                         filters_3x3_reduce=96,
+                         filters_3x3=128,
+                         filters_5x5_reduce=16,
+                         filters_5x5=32,
+                         filters_pool_proj=32)
+
+    # Segundo módulo Inception, com mais filtros para aprender padrões mais complexos.
+    x = inception_module(x,
+                         filters_1x1=128,
+                         filters_3x3_reduce=128,
+                         filters_3x3=192,
+                         filters_5x5_reduce=32,
+                         filters_5x5=96,
+                         filters_pool_proj=64)
+
+    x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
+
+    # Bloco de Classificação: prepara a saída dos módulos para a decisão final.
+    x = Flatten()(x) # Transforma o mapa de features 2D em um vetor 1D.
+    x = Dense(128, activation='relu')(x) # Camada densa, o "cérebro" do classificador.
+    
+    # Dropout é uma técnica de regularização para evitar overfitting.
+    # Durante o treino, 50% dos neurônios da camada anterior são "desligados"
+    # aleatoriamente a cada passo. Isso força a rede a não depender de neurônios específicos.
+    x = Dropout(0.5)(x)
+    
+    # Camada de saída final.
+    # 9 neurônios, um pra cada movimento artístico.
+    # 'softmax' transforma a saída em um vetor de probabilidades, onde a soma de tudo é 1.
+    output_layer = Dense(9, activation='softmax')(x)
+
+    # Monta o modelo final, conectando a entrada com a saída.
+    model = Model(inputs=input_layer, outputs=output_layer, name='inception_style_model')
+
+    # Imprime um resumo da arquitetura da rede. Ótimo pra debugar.
+    model.summary()
+
+    # --- 3. Compilação e Treinamento ---
+
+    # Configura o modelo para o treinamento.
+    # 'adam' é um otimizador eficiente e muito usado.
+    # 'categorical_crossentropy' é a função de perda padrão para classificação multiclasse.
+    # 'accuracy' é a métrica que queremos observar (percentual de acertos).
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    print(f"Tempo = {time() - inicio:.2f}s : Modelo compilado e pronto para treinar.")
+
+    # Inicia o treinamento do modelo.
+    # O 'validation_data' é usado ao final de cada época para avaliar o desempenho
+    # do modelo em dados que ele não usou para treinar, ajudando a monitorar o overfitting.
+    model.fit(x_train, y_train, epochs=QNT_EPOCAS, validation_data=(x_test, y_test))
+
+    print(f"Tempo = {time() - inicio:.2f}s : Modelo treinado com sucesso.")
+
+    # Salva o modelo treinado em um único arquivo.
+    model.save('model.keras')
+
+    print(f"Tempo = {time() - inicio:.2f}s : Modelo salvo como 'model.keras'.")
 
 
 def main():
- 
-  # Define a proporção do dataset a ser usada como conjunto de teste (ex: 0.1 para 10%)
-  TAM_TESTES = 15/100
+    """
+    Função principal que define os hiperparâmetros e chama a função de treinamento.
+    """
+    # Define a proporção do dataset a ser usada como conjunto de teste.
+    # 15% dos dados serão usados para validar o modelo.
+    TAM_TESTES = 15/100
 
-  # Define o número de épocas (ciclos completos de treinamento sobre o dataset)
-  QNT_EPOCAS = 40
+    # Define o número de épocas.
+    # Uma época é um ciclo completo de treinamento sobre todo o dataset.
+    QNT_EPOCAS = 40
 
-  treinar_modelo(TAM_TESTES, QNT_EPOCAS)
+    treinar_modelo(TAM_TESTES, QNT_EPOCAS)
 
-
-if __name__ == "__main__":
-  main()
+    main()
