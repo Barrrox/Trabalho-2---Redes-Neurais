@@ -116,7 +116,7 @@ def treinar_modelo(TAM_TESTES, QNT_EPOCAS):
     
     # Camada de entrada: define o formato que a rede espera receber.
     # No nosso caso, imagens de 255x255 pixels com 3 canais de cor (RGB).
-    input_layer = Input(shape=(255, 255, 3))
+    input_layer = Input(shape=(128, 128, 3))
 
     # Bloco convolucional inicial pra uma primeira extração de features
     # e redução da dimensionalidade da imagem.
@@ -200,4 +200,5 @@ def main():
 
     treinar_modelo(TAM_TESTES, QNT_EPOCAS)
 
-    main()
+
+main()

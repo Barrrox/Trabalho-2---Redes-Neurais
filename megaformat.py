@@ -29,7 +29,7 @@ def formatImage(imagemDesf):
 
 
 	# criar imagem de saída
-	outRes = 255
+	outRes = 128
 	output = np.zeros((outRes, outRes, 3), dtype=np.uint8)
 
 
