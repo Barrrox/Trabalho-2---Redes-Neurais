@@ -108,7 +108,7 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
     x = Activation('relu')(x)
 
     # Reduz a imagem de 128x128 para 64x64
-    x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
+    x = MaxPooling2D((2,2), strides=(1,1), padding='same')(x)
 
     x = inception_module(x, 64, 96, 128, 16, 32, 32)
 
