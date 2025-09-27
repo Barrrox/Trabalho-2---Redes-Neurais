@@ -15,11 +15,12 @@ from tensorflow.keras.layers import (
     Concatenate, Dropout, BatchNormalization,
     GlobalAveragePooling2D, Activation
 )
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from scikeras.wrappers import KerasClassifier
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 
-def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO):
+def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO, FRACAO_BUSCA):
     """
     Carrega os dados, divide-os em treino/validação/teste e executa o
     RandomizedSearchCV para encontrar os melhores hiperparâmetros para o modelo.
@@ -27,6 +28,7 @@ def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO):
     Args:
         TAM_TESTE (float): A proporção do conjunto de dados a ser usada para o teste.
         TAM_VALIDACAO (float): A proporção do conjunto de dados a ser usada para a validação.
+        FRACAO_BUSCA (float): A proporção do conjunto de treino a ser usada na busca (ex: 0.5 para 50%).
     """
     inicio = time()
 
@@ -48,9 +50,23 @@ def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO):
     )
 
     print(f"Tempo = {time() - inicio:.2f}s : Dados divididos em treino, validação e teste")
-    print(f"Conjunto de Treino: {len(x_train)} amostras")
+    print(f"Conjunto de Treino Completo: {len(x_train)} amostras")
     print(f"Conjunto de Validação: {len(x_val)} amostras")
     print(f"Conjunto de Teste: {len(x_test)} amostras")
+
+    # Se FRACAO_BUSCA for menor que 1.0, reduz o conjunto de treino para a busca
+    if FRACAO_BUSCA < 1.0 and FRACAO_BUSCA > 0.0:
+        # Usamos train_test_split para pegar uma amostra estratificada. O restante é descartado para esta busca.
+        # y_train ainda não está em one-hot, o que é ideal para o parâmetro stratify.
+        _, x_train, _, y_train = train_test_split(
+            x_train, y_train,
+            test_size=FRACAO_BUSCA,
+            random_state=42,
+            stratify=y_train
+        )
+        print(f"Tempo = {time() - inicio:.2f}s : Subconjunto de treino criado para a busca.")
+
+    print(f"Conjunto de Treino para a Busca: {len(x_train)} amostras ({FRACAO_BUSCA*100:.0f}%)")
 
     # Normaliza os valores dos pixels do conjunto de treino para o intervalo [0, 1].
     x_train = x_train / 255.0
@@ -118,14 +134,12 @@ def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO):
         x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
         x = GlobalAveragePooling2D()(x)
-        # A quantidade de neurônios nesta camada é um dos hiperparâmetros a ser otimizado.
         x = Dense(dense_units, activation='relu')(x)
         x = Dropout(0.5)(x)
 
         output_layer = Dense(9, activation='softmax')(x)
         
         model = Model(inputs=input_layer, outputs=output_layer)
-        # O otimizador usado é um dos hiperparâmetros a ser otimizado.
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
         
         return model
@@ -138,22 +152,31 @@ def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO):
     # Define o espaço de busca dos hiperparâmetros a serem testados.
     parametros = {
         # Parâmetros do método .fit()
-        'batch_size': [16, 32],
-        'epochs': [20],
+        'batch_size': [16, 32, 64],
+        'epochs': [100],  # Aumentamos as épocas, pois o EarlyStopping cuidará do limite
+        'validation_split': [0.2], # Separa 20% dos dados de treino para validação em cada fold
 
         # Parâmetros da função 'construir_modelo_inception' (prefixo 'model__')
         'model__optimizer': ['adam', 'rmsprop'],
         'model__dense_units': [128, 256, 512],
     }
 
-    # Configura a busca aleatória com validação cruzada (cv=2).
+    # Configura a busca aleatória com validação cruzada (cv=3).
     random_search = RandomizedSearchCV(estimator=model, param_distributions=parametros,
-                                         n_iter=8, cv=2, verbose=2)
+                                         n_iter=10, cv=3, verbose=2)
 
     print(f"Tempo = {time() - inicio:.2f}s : Instância do RandomizedSearch criada")
 
-    # Inicia o processo de busca e ajuste dos hiperparâmetros no conjunto de treino.
-    modelo_convergido = random_search.fit(x_train, y_train)
+    # Cria o callback de Early Stopping
+    early_stop = EarlyStopping(
+        monitor="val_loss",
+        patience=10,
+        verbose=2,
+        restore_best_weights=True
+    )
+
+    # Inicia o processo de busca, passando o callback para o método .fit()
+    modelo_convergido = random_search.fit(x_train, y_train, callbacks=[early_stop])
 
     print(f"Tempo = {time() - inicio:.2f}s : Otimização de hiperparâmetros concluída")
 
@@ -171,7 +194,13 @@ def main():
     # O restante será usado para o treino (ex: 70%).
     TAM_TESTE = 0.15
     TAM_VALIDACAO = 0.15
-    otimizar_parametros(TAM_TESTE, TAM_VALIDACAO)
+    
+    # Novo parâmetro: Define a fração do conjunto de treino que será usada para a busca.
+    # Por exemplo, 0.5 usará 50% dos dados de treino para acelerar a otimização.
+    # Para usar todos os dados de treino, defina como 1.0.
+    FRACAO_BUSCA = 0.20
+    
+    otimizar_parametros(TAM_TESTE, TAM_VALIDACAO, FRACAO_BUSCA)
 
 # Bloco padrão para garantir que main() seja executado apenas quando o script for chamado diretamente.
 if __name__ == "__main__":
