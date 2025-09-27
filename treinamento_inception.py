@@ -95,19 +95,19 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
         return out
 
 
-    #  ----- DEFINIÇÃO DA ARQUITETURA GERAL ----- 
+    #  ----- DEFINIÇÃO DA ARQUITETURA ----- 
  
     input_layer = Input(shape=(128, 128, 3))
 
     # Convolução que produz um tensor (128,128,32)
     # padding serve para 
-    x = Conv2D(32, (3,3), strides=(2,2), padding='same', use_bias=False)(input_layer) # use_bias=False (ver ponto 3)
+    x = Conv2D(32, (3,3), strides=(1,1), padding='same', use_bias=False)(input_layer) # use_bias=False (ver ponto 3)
     
     # BatchNormalization para 
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
-    # Reduz a imagem de 128x128 para 64x64
+    # Reduz x de 128x128 para 64x64
     x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
     x = inception_module(x, 64, 96, 128, 16, 32, 32)
@@ -129,7 +129,7 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
 
     # --- 4. Callbacks ---
     early_stop = EarlyStopping(
-        monitor="val_loss", patience=10, restore_best_weights=True
+        monitor="val_loss", patience=15, restore_best_weights=True
     )
     checkpoint = ModelCheckpoint(
         "modelo_melhor.keras", monitor="val_accuracy", save_best_only=True
@@ -137,7 +137,7 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
 
     # --- 5. Treinamento ---
     history = model.fit(
-        datagen.flow(x_train, y_train, batch_size=32),
+        datagen.flow(x_train, y_train, batch_size=16),
         validation_data=(x_val, y_val),
         epochs=QNT_EPOCAS,
         callbacks=[early_stop, checkpoint]
@@ -159,7 +159,7 @@ def main():
     # Proporção 80% treino, 10% validação, 10% teste
     TAM_TESTES = 0.10
     TAM_VALIDACAO = 0.10
-    QNT_EPOCAS = 40
+    QNT_EPOCAS = 60
     treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS)
 
 
