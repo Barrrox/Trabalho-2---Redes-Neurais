@@ -101,7 +101,7 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
 
     # Convolução que produz um tensor (128,128,32)
     # padding serve para 
-    x = Conv2D(32, (3,3), strides=(1,1), padding='same', use_bias=False)(input_layer) # use_bias=False (ver ponto 3)
+    x = Conv2D(32, (3,3), strides=(2,2), padding='same', use_bias=False)(input_layer) # use_bias=False (ver ponto 3)
     
     # BatchNormalization para 
     x = BatchNormalization()(x)
