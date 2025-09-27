@@ -79,12 +79,18 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
         return out
 
     input_layer = Input(shape=(128, 128, 3))
+
+    # Dropout leve para desligar 20% dos neurônios da camada inicial.
+    x = Dropout(0.2)(x)
+
     x = Conv2D(32, (3,3), activation='relu', strides=(2,2), padding='same')(input_layer)
     x = BatchNormalization()(x)
     x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
     x = inception_module(x, 64, 96, 128, 16, 32, 32)
-    x = Dropout(0.3)(x)
+    # Dropout para desligar 30% dos neurônios da camada inception.
+    # Isso ajuda a evitar dependência de certos neur
+    x = Dropout(0.3)(x) 
 
     x = inception_module(x, 128, 128, 192, 32, 96, 64)
     x = Dropout(0.3)(x)
@@ -93,7 +99,7 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
 
     x = GlobalAveragePooling2D()(x)
     x = Dense(256, activation='relu')(x)
-    x = Dropout(0.5)(x)
+    x = Dropout(0.5)(x) # DropOut alto para lidar com as camadas Densas
 
     output_layer = Dense(9, activation='softmax')(x)
 
