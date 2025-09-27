@@ -81,9 +81,9 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
     input_layer = Input(shape=(128, 128, 3))
 
     # Dropout leve para desligar 20% dos neurônios da camada inicial.
-    x = Dropout(0.2)(x)
+    x = Dropout(0.2)(input_layer)
 
-    x = Conv2D(32, (3,3), activation='relu', strides=(2,2), padding='same')(input_layer)
+    x = Conv2D(32, (3,3), activation='relu', strides=(2,2), padding='same')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
