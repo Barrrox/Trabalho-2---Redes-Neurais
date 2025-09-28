@@ -28,12 +28,12 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
     print(f"Tempo = {time() - inicio:.2f}s : Datasets carregados.")
 
     # Divisão em treino, validação e teste
-    # Passo 1: Separar o conjunto de teste (10%) do restante (90%)
+    # Passo 1: Separar o conjunto de teste
     x_train_temp, x_test, y_train_temp, y_test = train_test_split(
         imagens, labels, test_size=TAM_TESTES, random_state=42, stratify=labels
     )
 
-    # Passo 2: Separar o restante em treino (80%) e validação (10%)
+    # Passo 2: Separar o restante em treino
     val_size_recalculado = TAM_VALIDACAO / (1.0 - TAM_TESTES)
     x_train, x_val, y_train, y_val = train_test_split(
         x_train_temp, y_train_temp, test_size=val_size_recalculado, random_state=42, stratify=y_train_temp
@@ -51,6 +51,7 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
     y_test = to_categorical(y_test, 9)
 
     # --- 2. Data Augmentation ---
+    # Modifica as imagens para 
     datagen = ImageDataGenerator(
         rotation_range=20,
         width_shift_range=0.1,
@@ -62,6 +63,8 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
     datagen.fit(x_train)
 
     # --- 3. Definição do Modelo ---
+
+    # Módulo Inception 
     def inception_module(x, f1, f2_in, f2_out, f3_in, f3_out, f4_out):
         # Ramo 1
         conv1 = Conv2D(f1, (1,1), padding='same', use_bias=False)(x)
@@ -93,33 +96,51 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
         # A BN final após a concatenação é agora redundante e pode ser removida.
         out = Concatenate(axis=-1)([conv1, conv3, conv5, pool_proj])
         return out
-
-
-    #  ----- DEFINIÇÃO DA ARQUITETURA ----- 
  
     input_layer = Input(shape=(128, 128, 3))
 
-    # Convolução que produz um tensor (128,128,32)
-    # padding serve para 
+    # Convolução: Analisa a imagem com 32 neuronios (filtros)
+    # de tamanho 3x3 para fazer uma captura inicial das imagens, 
+    # saltando de 2 em 2 pixels. Transforma (128,128,3) para
+    # (64, 64, 32). A seguir há um BatchNormalization que contém 
+    # um parâmetro beta, o qual aje como um bias. Logo é possível 
+    # desativar o bias aqui para otimizar um pouco o treinamento.
     x = Conv2D(32, (3,3), strides=(2,2), padding='same', use_bias=False)(input_layer) # use_bias=False (ver ponto 3)
     
-    # BatchNormalization para 
+    # BatchNormalization para padronizar a saída convolucional.
+    # Ele calcula a média, desvio padrão e normaliza os dados.
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
 
-    # Reduz x de 128x128 para 64x64
+    # MaxPooling2D reduz a dimensionalidade da imagem ao
+    # analisar porçoes 2x2 da imagem e capturar o pixel com
+    # maior valor (Max) formando um novo tensor com metade
+    # do tamanho. strides=(2,2) indica que a analise é feita
+    # saltando de 2 em 2 pixels, o que reduz a imagem a sua
+    # metade.
     x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
     x = inception_module(x, 64, 96, 128, 16, 32, 32)
 
     x = inception_module(x, 128, 128, 192, 32, 96, 64)
 
+    # Explicação igual ao maxpooling anterior
     x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
+    # Global Average Pooling faz uma média dos mapas de características
+    # para cada canal (transforma o tensor3D anterior de 16x16x480 
+    # em um tensor 1D de tamanho 480). Serve para reduzir o tamanho do mapa de
+    # características para a próxima camada.
     x = GlobalAveragePooling2D()(x)
-    x = Dense(256, activation='relu')(x)
-    x = Dropout(0.5)(x) # DropOut alto para lidar com as camadas Densas
 
+    # Camada totalmente conectada com a anteior para aprender combinações complexas
+    # de caracteristicas.
+    x = Dense(256, activation='relu')(x)
+    x = Dropout(0.5)(x) # DropOut alto para lidar com a camada densa.
+
+    # Camada final que transforma os 256 neurônios anteriores
+    # em 9, para obter o resultado da época. Utiliza o softmax
+    # para trasnformar os resultados em um vetor de probabilidades.
     output_layer = Dense(9, activation='softmax')(x)
 
     model = Model(inputs=input_layer, outputs=output_layer)
@@ -128,9 +149,14 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
     model.summary()
 
     # --- 4. Callbacks ---
+    
+    # EarlyStopping para o treinamento se não houver melhora na taxa
+    # de erro após 15 épocas seguidas
     early_stop = EarlyStopping(
         monitor="val_loss", patience=15, restore_best_weights=True
     )
+
+    # Salva o melhor modelo baseando-se no valor da acurácia de validação
     checkpoint = ModelCheckpoint(
         "modelo.keras", monitor="val_accuracy", save_best_only=True
     )
