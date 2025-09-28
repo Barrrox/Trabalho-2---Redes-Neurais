@@ -153,7 +153,7 @@ def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO, FRACAO_BUSCA):
     parametros = {
         # Parâmetros do método .fit()
         'batch_size': [16, 32, 64],
-        'epochs': [100],  # Aumentamos as épocas, pois o EarlyStopping cuidará do limite
+        'epochs': [50],  # Aumentamos as épocas, pois o EarlyStopping cuidará do limite
         'validation_split': [0.2], # Separa 20% dos dados de treino para validação em cada fold
 
         # Parâmetros da função 'construir_modelo_inception' (prefixo 'model__')
@@ -163,14 +163,14 @@ def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO, FRACAO_BUSCA):
 
     # Configura a busca aleatória com validação cruzada (cv=3).
     random_search = RandomizedSearchCV(estimator=model, param_distributions=parametros,
-                                         n_iter=10, cv=3, verbose=2)
+                                         n_iter=6, cv=2, verbose=2)
 
     print(f"Tempo = {time() - inicio:.2f}s : Instância do RandomizedSearch criada")
 
     # Cria o callback de Early Stopping
     early_stop = EarlyStopping(
         monitor="val_loss",
-        patience=10,
+        patience=5,
         verbose=2,
         restore_best_weights=True
     )
@@ -192,8 +192,8 @@ def main():
     """
     # Define a proporção para os conjuntos de teste e validação (ex: 15% cada).
     # O restante será usado para o treino (ex: 70%).
-    TAM_TESTE = 0.15
-    TAM_VALIDACAO = 0.15
+    TAM_TESTE = 0.10
+    TAM_VALIDACAO = 0.10
     
     # Novo parâmetro: Define a fração do conjunto de treino que será usada para a busca.
     # Por exemplo, 0.5 usará 50% dos dados de treino para acelerar a otimização.
