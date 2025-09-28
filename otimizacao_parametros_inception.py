@@ -122,20 +122,50 @@ def otimizar_parametros(TAM_TESTE, TAM_VALIDACAO, FRACAO_BUSCA):
             return out
 
         input_layer = Input(shape=(128, 128, 3))
-    
+
+
+        # Convolução: Analisa a imagem com 32 neuronios (filtros)
+        # de tamanho 3x3 para fazer uma captura inicial das imagens, 
+        # saltando de 2 em 2 pixels. Transforma (128,128,3) para
+        # (64, 64, 32). A seguir há um BatchNormalization que contém 
+        # um parâmetro beta, o qual aje como um bias. Logo é possível 
+        # desativar o bias aqui para otimizar um pouco o treinamento.    
         x = Conv2D(32, (3,3), strides=(2,2), padding='same', use_bias=False)(input_layer)
+        
+        # BatchNormalization para padronizar a saída convolucional.
+        # Ele calcula a média, desvio padrão e normaliza os dados.
         x = BatchNormalization()(x)
         x = Activation('relu')(x)
+
+        # MaxPooling2D reduz a dimensionalidade da imagem ao
+        # analisar porçoes 2x2 da imagem e capturar o pixel com
+        # maior valor (Max) formando um novo tensor com metade
+        # do tamanho. strides=(2,2) indica que a analise é feita
+        # saltando de 2 em 2 pixels, o que reduz a imagem a sua
+        # metade.
         x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
+        # Os dois primeiros módulos inception do GoogleLeNet
         x = inception_module(x, 64, 96, 128, 16, 32, 32)
         x = inception_module(x, 128, 128, 192, 32, 96, 64)
 
+        # Explicação igual ao maxpooling anterior
         x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
+        # Global Average Pooling faz uma média dos mapas de características
+        # para cada canal (transforma o tensor3D anterior de 16x16x480 
+        # em um tensor 1D de tamanho 480). Serve para reduzir o tamanho do mapa de
+        # características para a próxima camada.
         x = GlobalAveragePooling2D()(x)
+
+        # Camada totalmente conectada com a anteior para aprender combinações complexas
+        # de caracteristicas.
         x = Dense(dense_units, activation='relu')(x)
         x = Dropout(0.5)(x)
+
+        # Camada final que transforma os 256 neurônios anteriores
+        # em 9, para obter o resultado da época. Utiliza o softmax
+        # para trasnformar os resultados em um vetor de probabilidades.
 
         output_layer = Dense(9, activation='softmax')(x)
         

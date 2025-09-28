@@ -66,6 +66,7 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
 
     # Módulo Inception 
     def inception_module(x, f1, f2_in, f2_out, f3_in, f3_out, f4_out):
+
         # Ramo 1
         conv1 = Conv2D(f1, (1,1), padding='same', use_bias=False)(x)
         conv1 = BatchNormalization()(conv1)
@@ -93,7 +94,6 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
         pool_proj = BatchNormalization()(pool_proj)
         pool_proj = Activation('relu')(pool_proj)
 
-        # A BN final após a concatenação é agora redundante e pode ser removida.
         out = Concatenate(axis=-1)([conv1, conv3, conv5, pool_proj])
         return out
  
@@ -120,8 +120,8 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
     # metade.
     x = MaxPooling2D((2,2), strides=(2,2), padding='same')(x)
 
+    # Os dois primeiros módulos inception do GoogleLeNet
     x = inception_module(x, 64, 96, 128, 16, 32, 32)
-
     x = inception_module(x, 128, 128, 192, 32, 96, 64)
 
     # Explicação igual ao maxpooling anterior

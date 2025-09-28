@@ -98,6 +98,7 @@ def formatDataSet(caminhoParaODataSet):
 
 			lista_de_matrizes.append(imagemFormatada)
 			
+			# pega a label do movimento artístico para 
 			classe = getFolder(str(caminho_imagem))
 
 			lista_de_classes.append(classe_para_label[classe])
@@ -113,11 +114,4 @@ def formatDataSet(caminhoParaODataSet):
 inicio = time()
 formatDataSet("./BaseDeDados")
 print(f"Tempo : {time() - inicio}s")
-# # abrir arquivo da imagem
-# image = cv2.imread("exp.jpg")
-
-# # mostrar imagem
-# cv2.imshow('Imagem', formatImage(image))
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
 
