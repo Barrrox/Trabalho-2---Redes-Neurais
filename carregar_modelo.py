@@ -152,6 +152,7 @@ def main():
     Ponto de entrada principal do script.
     """
     # Define a proporção de imagens a serem usadas para gerar a matriz de confusão.
+    # Inserir a mesma proporção usada nos treinos
     TAM_TESTES = 0.10
     carregar_modelo(TAM_TESTES)
 

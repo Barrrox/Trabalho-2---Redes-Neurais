@@ -132,7 +132,7 @@ def treinar_modelo(TAM_TESTES, TAM_VALIDACAO, QNT_EPOCAS):
         monitor="val_loss", patience=15, restore_best_weights=True
     )
     checkpoint = ModelCheckpoint(
-        "modelo_melhor.keras", monitor="val_accuracy", save_best_only=True
+        "modelo.keras", monitor="val_accuracy", save_best_only=True
     )
 
     # --- 5. Treinamento ---
