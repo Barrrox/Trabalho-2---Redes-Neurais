@@ -8,6 +8,7 @@ Autores: Ellen Brzozoski, João Silva, Lóra, Matheus Barros
 
 from tensorflow.keras.models import load_model # type: ignore
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.model_selection import train_test_split # Importar a função de divisão
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button # Importar o widget de botão
 import numpy as np
@@ -27,31 +28,31 @@ label_para_classe = {
     }
 
 
-def carregar_modelo(QNT_TESTES):
+def carregar_modelo(TAM_TESTES):
     """
     Carrega um modelo Keras treinado, avalia sua performance com uma matriz de confusão
     e exibe uma janela interativa com a predição de 9 imagens, uma de cada categoria.
 
     Args:
-        QNT_TESTES (int): O número de amostras a serem selecionadas aleatoriamente
-                          do conjunto de treino para compor o conjunto de teste
-                          para a matriz de confusão.
+        TAM_TESTES (float): A proporção do conjunto de dados a ser usada como
+                            conjunto de teste para a matriz de confusão.
     """
     # Carrega o modelo pré-treinado a partir do arquivo 'model.keras'.
-    model = load_model('model.keras')
+    model = load_model('modelo.keras')
 
     # --- Etapa 1: Geração da Matriz de Confusão ---
     
-    # Carrega as imagens e os rótulos do conjunto de dados de treino.
-    x_train = np.load("imagens_treino.npy")
-    y_train = np.load("labels_treino.npy")
+    # Carrega as imagens e os rótulos do conjunto de dados completo.
+    imagens = np.load("imagens_treino.npy")
+    labels = np.load("labels_treino.npy")
 
-    # Cria um conjunto de teste selecionando amostras aleatórias do conjunto de treino.
-    indices_teste = random.sample(range(len(y_train)), QNT_TESTES)
-    x_test = x_train[indices_teste]
-    y_test = y_train[indices_teste]
+    # Separa os dados em um conjunto de treino (para a etapa 2) e um de teste (para a matriz).
+    # Este passo é idêntico ao do script de treinamento para garantir consistência.
+    x_train, x_test, y_train, y_test = train_test_split(
+        imagens, labels, test_size=TAM_TESTES, random_state=42, stratify=labels
+    )
     
-    # Normaliza os valores dos pixels para o intervalo [0, 1].
+    # Normaliza os valores dos pixels do conjunto de teste para o intervalo [0, 1].
     x_test_normalized = x_test / 255.0
 
     # Realiza as predições no conjunto de teste.
@@ -150,9 +151,9 @@ def main():
     """
     Ponto de entrada principal do script.
     """
-    # Define a quantidade de imagens a serem usadas para gerar a matriz de confusão.
-    QNT_TESTES = 90
-    carregar_modelo(QNT_TESTES)
+    # Define a proporção de imagens a serem usadas para gerar a matriz de confusão.
+    TAM_TESTES = 0.10
+    carregar_modelo(TAM_TESTES)
 
 # Garante que o script só será executado quando chamado diretamente.
 if __name__ == "__main__":
